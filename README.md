@@ -5,8 +5,10 @@ API **non-officielle** permettant de récuperer des données sur les lignes de b
 - [Installation](#installation)
 - [Routes](#routes)
   - [`GET` `/v1/bus`](#get-v1bus)
+  - [`GET` `/v1/bus/direction?id={bus_id}`](#get-v1busdirectionidbus_id)
   - [`GET` `/v1/direction`](#get-v1direction)
   - [`GET` `/v1/direction/bus?id={bus_id}`](#get-v1directionbusidbus_id)
+  - [`GET` `/v1/direction/bus_stop?id={bus_stop_id}`](#get-v1directionbus_stopidbus_stop_id)
   - [`GET` `/v1/appleshortcuts/direction/bus?id={bus_id}`](#get-v1appleshortcutsdirectionbusidbus_id)
   - [`GET` `/v1/bus_stop`](#get-v1bus_stop)
   - [`GET` `/v1/bus_stop/direciton?id={direction_id}`](#get-v1bus_stopdirecitoniddirection_id)
@@ -33,7 +35,15 @@ Retourne la liste des bus
   "C",
   "D"
 ]
+```
 
+### `GET` `/v1/bus/direction?id={bus_id}`
+Retourne le bus d'**une direction**
+
+```json
+[
+  "D"
+]
 ```
 
 ### `GET` `/v1/direction`
@@ -58,6 +68,22 @@ Retourne toutes les directions
 
 ### `GET` `/v1/direction/bus?id={bus_id}`
 Retourne les directions d'**un bus**
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Plage / technolac / landiers sud / gare"
+  },
+  {
+    "id": 2,
+    "name": "Universite jacob"
+  }
+]
+```
+
+### `GET` `/v1/direction/bus_stop?id={bus_stop_id}`
+Retourne les directions d'**un arrêt de bus**
 
 ```json
 [
@@ -202,7 +228,21 @@ Retourne les arrêts de bus correspondant à la recherche
 
 ```json
 [
-  "Université Le Bourget",
-  "Université Jacob"
+  {
+    "id": "UBOUR1",
+    "name": "Université Le Bourget"
+  },
+  {
+    "id": "UBOUR2",
+    "name": "Université Le Bourget"
+  },
+  {
+    "id": "UJACO1",
+    "name": "Université Jacob"
+  },
+  {
+    "id": "UJACO2",
+    "name": "Université Jacob"
+  }
 ]
 ```

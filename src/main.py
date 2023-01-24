@@ -27,6 +27,23 @@ def get_bus():
     return jsonify([bus["id"] for bus in res]), 200
 
 
+@app.route("/v1/bus/direction", methods=["GET"])
+def get_bus_direction():
+    """Return all bus for a direction"""
+    direction_id = request.args.get("id", default="", type=str)
+    if direction_id == "":
+        return jsonify({"error": "Vous devez spécifier une direction"}), 400
+    query = select([Bus.id]).where(
+        Bus.id.in_(
+            select([BusDirection.bus_id]).where(
+                BusDirection.direction_id == direction_id
+            )
+        )
+    )
+    res = session.execute(query).fetchall()
+    return jsonify([bus["id"] for bus in res]), 200
+
+
 @app.route("/v1/direction", methods=["GET"])
 def get_direction():
     """Return all direction"""
@@ -48,6 +65,28 @@ def get_direction_bus():
     query = select([Direction.id, Direction.name]).where(
         Direction.id.in_(
             select([BusDirection.direction_id]).where(BusDirection.bus_id == bus_id)
+        )
+    )
+    res = session.execute(query).fetchall()
+    return (
+        jsonify(
+            [{"id": direction["id"], "name": direction["name"]} for direction in res]
+        ),
+        200,
+    )
+
+
+@app.route("/v1/direction/bus_stop", methods=["GET"])
+def get_direction_bus_stop():
+    """Return all direction for a bus stop"""
+    bus_stop_id = request.args.get("id", default="", type=str)
+    if bus_stop_id == "":
+        return jsonify({"error": "Vous devez spécifier un arrêt de bus"}), 400
+    query = select([Direction.id, Direction.name]).where(
+        Direction.id.in_(
+            select([BusStopDirection.direction_id]).where(
+                BusStopDirection.bus_stop_id == bus_stop_id
+            )
         )
     )
     res = session.execute(query).fetchall()
@@ -130,11 +169,14 @@ def get_bus_stop_direction_appleshortcuts():
 @app.route("/v1/bus_stop/search/<string:bus_stop_name>", methods=["GET"])
 def search_bus_stop(bus_stop_name: str):
     """Return all bus stop that match the name"""
-    query = select([BusStop.name.distinct()]).where(
+    query = select([BusStop.id, BusStop.name]).where(
         BusStop.name.like(f"%{bus_stop_name}%")
     )
     res = session.execute(query).fetchall()
-    return jsonify([bus_stop[0] for bus_stop in res]), 200
+    return (
+        jsonify([{"id": bus_stop["id"], "name": bus_stop["name"]} for bus_stop in res]),
+        200,
+    )
 
 
 @app.route("/v1/bus_stop/live/<string:bus_stop_id>", methods=["GET"])
@@ -172,4 +214,5 @@ def get_bus_stop_info(bus_stop_id: str):
 
 if __name__ == "__main__":
     session = APIDatabase(config.DB_URL)
+    # app.run(host="0.0.0.0", port=8000, debug=True)
     serve(app, host="0.0.0.0", port=80)
