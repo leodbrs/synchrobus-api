@@ -1,0 +1,7 @@
+requests
+bs4
+flask
+sqlalchemy
+alembic
+pymysql
+waitress

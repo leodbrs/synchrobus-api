@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 80:80
+    entrypoint: ./entrypoint.sh
+    depends_on:
+      - database
+
+  database:
+    image: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: api
