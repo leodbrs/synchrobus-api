@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-cd ./database
+ROOT_DIR=$(pwd)
+
+cd "$ROOT_DIR/database"
 alembic revision --autogenerate
 alembic upgrade heads
 
-cd ../
+cd "$ROOT_DIR"
 python main.py
