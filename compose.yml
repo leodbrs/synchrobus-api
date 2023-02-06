@@ -6,6 +6,8 @@ services:
       - 80:80
     depends_on:
       - database
+    networks:
+      - syncroapi
 
   database:
     image: mariadb
@@ -13,3 +15,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: api
+    networks:
+      - syncroapi
+
+networks:
+  syncroapi:
