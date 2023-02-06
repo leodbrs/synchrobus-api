@@ -1,22 +1,6 @@
 services:
-  web:
-    build: .
-    restart: unless-stopped
-    ports:
-      - 80:80
-    depends_on:
-      - database
-    networks:
-      - syncroapi
-
-  database:
-    image: mariadb
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: api
-    networks:
-      - syncroapi
-
-networks:
-  syncroapi:
+    web:
+        build: .
+        restart: unless-stopped
+        ports:
+            - 8080:8080

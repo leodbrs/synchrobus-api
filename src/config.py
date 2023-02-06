@@ -1,1 +1,1 @@
-DB_URL = "mysql+pymysql://root:root@database/api"
+DB_URL = "sqlite:///./database/db.sqlite"

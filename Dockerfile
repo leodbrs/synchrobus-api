@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 RUN python -m venv /usr/src/app/venv
 ENV PATH="/usr/src/app/venv/bin:$PATH"
 
-COPY ./src/requirements.txt requirements.txt
+COPY ./requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
 
@@ -19,6 +19,17 @@ COPY --from=builder /usr/src/app/venv ./venv
 COPY ./src/ .
 
 ENV PATH="/usr/src/app/venv/bin:$PATH"
-RUN chmod +x ./entrypoint.sh
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+COPY ./src/database database
+
+WORKDIR /usr/src/app/database
+RUN alembic init alembic
+RUN sed -i 's/target_metadata = None/target_metadata = Base.metadata/g' alembic/env.py
+RUN sed -i '/^from alembic import context/a from Table import Base' alembic/env.py
+RUN alembic revision --autogenerate -m "init"
+RUN alembic upgrade head
+
+RUN chmod +x /usr/src/app/entrypoint.sh
+
+WORKDIR /usr/src/app
+ENTRYPOINT [ "/usr/src/app/entrypoint.sh" ]
