@@ -19,12 +19,12 @@ def add_bus(bus):
 
 def add_direction(direction):
     existing_row = session.execute(
-        select(Direction).filter(Direction.name == direction)
+        select(Direction).filter(Direction.name == direction.capitalize())
     ).first()
     if not existing_row:
         direction_item = Direction(name=direction.capitalize())
         session.add(direction_item)
-        session.flush()
+        session.commit()
         return direction_item.id
     else:
         return existing_row[0].id
@@ -37,7 +37,7 @@ def add_bus_stop(bus_stop_id, bus_stop_name):
     if not existing_row:
         bus_stop_item = BusStop(id=bus_stop_id, name=bus_stop_name)
         session.add(bus_stop_item)
-        session.flush()
+        session.commit()
         return bus_stop_item.id
     else:
         return existing_row[0].id
@@ -52,7 +52,7 @@ def add_bus_direction(bus, direction):
     if not existing_row:
         bus_direction_item = BusDirection(bus_id=bus, direction_id=direction)
         session.add(bus_direction_item)
-        session.flush()
+        session.commit()
         return bus_direction_item.id
     else:
         return existing_row[0].id
@@ -67,7 +67,7 @@ def add_bus_stop_bus(bus_stop_id, bus):
     if not existing_row:
         bus_stop_bus_item = BusStopBus(bus_stop_id=bus_stop_id, bus_id=bus)
         session.add(bus_stop_bus_item)
-        session.flush()
+        session.commit()
     else:
         return existing_row[0].id
 
@@ -84,7 +84,7 @@ def add_bus_stop_direction(bus_stop_id, direction):
             bus_stop_id=bus_stop_id, direction_id=direction
         )
         session.add(bus_stop_direction_item)
-        session.flush()
+        session.commit()
     else:
         return existing_row[0].id
 
@@ -108,3 +108,4 @@ for bus in bus_list:
             add_bus_stop_bus(bus_stop["id"], bus)
             add_bus_stop_direction(bus_stop["id"], direction_id)
 session.commit()
+print("Database initialized")

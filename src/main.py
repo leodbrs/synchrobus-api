@@ -5,7 +5,6 @@ from sqlalchemy import select
 from waitress import serve
 
 import config
-import InitDb
 from database.Database import APIDatabase as APIDatabase
 from database.Table import (
     Bus,
@@ -24,7 +23,7 @@ app.config["JSON_SORT_KEYS"] = False
 def get_bus():
     """Return all bus"""
     res = session.execute(select(Bus.id)).fetchall()
-    return jsonify([bus["id"] for bus in res]), 200
+    return jsonify([bus[0] for bus in res]), 200
 
 
 @app.route("/v1/bus/direction", methods=["GET"])
@@ -41,7 +40,7 @@ def get_bus_direction():
         )
     )
     res = session.execute(query).fetchall()
-    return jsonify([bus["id"] for bus in res]), 200
+    return jsonify([bus[0] for bus in res]), 200
 
 
 @app.route("/v1/direction", methods=["GET"])
@@ -49,9 +48,7 @@ def get_direction():
     """Return all direction"""
     res = session.execute(select(Direction.id, Direction.name)).fetchall()
     return (
-        jsonify(
-            [{"id": direction["id"], "name": direction["name"]} for direction in res]
-        ),
+        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
         200,
     )
 
@@ -69,9 +66,7 @@ def get_direction_bus():
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify(
-            [{"id": direction["id"], "name": direction["name"]} for direction in res]
-        ),
+        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
         200,
     )
 
@@ -91,9 +86,7 @@ def get_direction_bus_stop():
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify(
-            [{"id": direction["id"], "name": direction["name"]} for direction in res]
-        ),
+        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
         200,
     )
 
@@ -111,7 +104,7 @@ def get_direction_bus_appleshortcuts():
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify({direction["name"]: direction["id"] for direction in res}),
+        jsonify({direction[1]: direction[0] for direction in res}),
         200,
     )
 
@@ -121,7 +114,7 @@ def get_bus_stop():
     """Return all bus stop"""
     res = session.execute(select(BusStop.id, BusStop.name)).fetchall()
     return (
-        jsonify([{"id": bus_stop["id"], "name": bus_stop["name"]} for bus_stop in res]),
+        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
         200,
     )
 
@@ -141,7 +134,7 @@ def get_bus_stop_direction():
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify([{"id": bus_stop["id"], "name": bus_stop["name"]} for bus_stop in res]),
+        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
         200,
     )
 
@@ -161,7 +154,7 @@ def get_bus_stop_direction_appleshortcuts():
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify({bus_stop["name"]: bus_stop["id"] for bus_stop in res}),
+        jsonify({bus_stop[1]: bus_stop[0] for bus_stop in res}),
         200,
     )
 
@@ -174,7 +167,7 @@ def search_bus_stop(bus_stop_name: str):
     )
     res = session.execute(query).fetchall()
     return (
-        jsonify([{"id": bus_stop["id"], "name": bus_stop["name"]} for bus_stop in res]),
+        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
         200,
     )
 
@@ -214,5 +207,6 @@ def get_bus_stop_info(bus_stop_id: str):
 
 if __name__ == "__main__":
     session = APIDatabase(config.DB_URL)
-    # app.run(host="0.0.0.0", port=8000, debug=True)
-    serve(app, host="0.0.0.0", port=80)
+    print("Starting server...")
+    app.run(host="0.0.0.0", port=8080, debug=True)
+    # serve(app, host="0.0.0.0", port=8080)
