@@ -3,5 +3,7 @@ bs4
 flask
 sqlalchemy
 alembic
-pymysql
 waitress
+
+fastapi
+uvicorn[standard]

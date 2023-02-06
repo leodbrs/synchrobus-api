@@ -1,8 +1,9 @@
+from typing import Union
+
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify, request
+from fastapi import FastAPI, HTTPException
 from sqlalchemy import select
-from waitress import serve
 
 import config
 from database.Database import APIDatabase as APIDatabase
@@ -15,167 +16,164 @@ from database.Table import (
     Direction,
 )
 
-app = Flask(__name__)
-app.config["JSON_SORT_KEYS"] = False
+app = FastAPI()
 
 
-@app.route("/v1/bus", methods=["GET"])
+@app.get("/v1/bus")
 def get_bus():
     """Return all bus"""
+    session = APIDatabase(config.DB_URL)
     res = session.execute(select(Bus.id)).fetchall()
-    return jsonify([bus[0] for bus in res]), 200
+    session.close()
+    return [bus[0] for bus in res]
 
 
-@app.route("/v1/bus/direction", methods=["GET"])
-def get_bus_direction():
+@app.get("/v1/bus/direction")
+def get_bus_direction(direction_id: Union[int, None] = None):
     """Return all bus for a direction"""
-    direction_id = request.args.get("id", default="", type=str)
-    if direction_id == "":
-        return jsonify({"error": "Vous devez spécifier une direction"}), 400
-    query = select([Bus.id]).where(
+    if not direction_id:
+        raise HTTPException(
+            status_code=400, detail="Vous devez spécifier une direction"
+        )
+    query = select(Bus.id).where(
         Bus.id.in_(
-            select([BusDirection.bus_id]).where(
-                BusDirection.direction_id == direction_id
-            )
+            select(BusDirection.bus_id).where(BusDirection.direction_id == direction_id)
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return jsonify([bus[0] for bus in res]), 200
+    session.close()
+    return [bus[0] for bus in res]
 
 
-@app.route("/v1/direction", methods=["GET"])
+@app.get("/v1/direction")
 def get_direction():
     """Return all direction"""
+    session = APIDatabase(config.DB_URL)
     res = session.execute(select(Direction.id, Direction.name)).fetchall()
-    return (
-        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
-        200,
-    )
+    session.close()
+    return [{"id": direction[0], "name": direction[1]} for direction in res]
 
 
-@app.route("/v1/direction/bus", methods=["GET"])
-def get_direction_bus():
+@app.get("/v1/direction/bus")
+def get_direction_bus(bus_id: Union[str, None] = None):
     """Return all direction for a bus"""
-    bus_id = request.args.get("id", default="", type=str)
-    if bus_id == "":
-        return jsonify({"error": "Vous devez spécifier un bus"}), 400
-    query = select([Direction.id, Direction.name]).where(
+    if not bus_id:
+        raise HTTPException(status_code=400, detail="Vous devez spécifier un bus")
+    query = select(Direction.id, Direction.name).where(
         Direction.id.in_(
-            select([BusDirection.direction_id]).where(BusDirection.bus_id == bus_id)
+            select(BusDirection.direction_id).where(BusDirection.bus_id == bus_id)
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
-        200,
-    )
+    session.close()
+    return [{"id": direction[0], "name": direction[1]} for direction in res]
 
 
-@app.route("/v1/direction/bus_stop", methods=["GET"])
-def get_direction_bus_stop():
+@app.get("/v1/direction/bus_stop")
+def get_direction_bus_stop(bus_stop_id: Union[str, None] = None):
     """Return all direction for a bus stop"""
-    bus_stop_id = request.args.get("id", default="", type=str)
-    if bus_stop_id == "":
-        return jsonify({"error": "Vous devez spécifier un arrêt de bus"}), 400
-    query = select([Direction.id, Direction.name]).where(
+    if not bus_stop_id:
+        raise HTTPException(
+            status_code=400, detail="Vous devez spécifier un arrêt de bus"
+        )
+    query = select(Direction.id, Direction.name).where(
         Direction.id.in_(
-            select([BusStopDirection.direction_id]).where(
+            select(BusStopDirection.direction_id).where(
                 BusStopDirection.bus_stop_id == bus_stop_id
             )
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify([{"id": direction[0], "name": direction[1]} for direction in res]),
-        200,
-    )
+    session.close()
+    return [{"id": direction[0], "name": direction[1]} for direction in res]
 
 
-@app.route("/v1/appleshortcuts/direction/bus", methods=["GET"])
-def get_direction_bus_appleshortcuts():
+@app.get("/v1/appleshortcuts/direction/bus")
+def get_direction_bus_appleshortcuts(bus_id: Union[str, None] = None):
     """Return all direction for a bus"""
-    bus_id = request.args.get("id", default="", type=str)
-    if bus_id == "":
-        return jsonify({"error": "Vous devez spécifier un bus"}), 400
-    query = select([Direction.id, Direction.name]).where(
+    if not bus_id:
+        raise HTTPException(status_code=400, detail="Vous devez spécifier un bus")
+    query = select(Direction.id, Direction.name).where(
         Direction.id.in_(
-            select([BusDirection.direction_id]).where(BusDirection.bus_id == bus_id)
+            select(BusDirection.direction_id).where(BusDirection.bus_id == bus_id)
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify({direction[1]: direction[0] for direction in res}),
-        200,
-    )
+    session.close()
+    return {direction[1]: direction[0] for direction in res}
 
 
-@app.route("/v1/bus_stop", methods=["GET"])
+@app.get("/v1/bus_stop")
 def get_bus_stop():
     """Return all bus stop"""
+    session = APIDatabase(config.DB_URL)
     res = session.execute(select(BusStop.id, BusStop.name)).fetchall()
-    return (
-        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
-        200,
-    )
+    session.close()
+    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
 
 
-@app.route("/v1/bus_stop/direction", methods=["GET"])
-def get_bus_stop_direction():
+@app.route("/v1/bus_stop/direction")
+def get_bus_stop_direction(direction_id: Union[str, None] = None):
     """Return all bus stop for a direction"""
-    direction_id = request.args.get("id", default="", type=str)
-    if direction_id == "":
-        return jsonify({"error": "Vous devez spécifier une direction"}), 400
-    query = select([BusStop.id, BusStop.name]).where(
+    if not direction_id:
+        raise HTTPException(
+            status_code=400, detail="Vous devez spécifier une direction"
+        )
+    query = select(BusStop.id, BusStop.name).where(
         BusStop.id.in_(
-            select([BusStopDirection.bus_stop_id]).where(
+            select(BusStopDirection.bus_stop_id).where(
                 BusStopDirection.direction_id == direction_id
             )
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
-        200,
-    )
+    session.close()
+    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
 
 
-@app.route("/v1/appleshortcuts/bus_stop/direction", methods=["GET"])
-def get_bus_stop_direction_appleshortcuts():
+@app.get("/v1/appleshortcuts/bus_stop/direction")
+def get_bus_stop_direction_appleshortcuts(direction_id: Union[str, None] = None):
     """Return all bus stop for a direction"""
-    direction_id = request.args.get("id", default="", type=str)
-    if direction_id == "":
-        return jsonify({"error": "Vous devez spécifier une direction"}), 400
-    query = select([BusStop.id, BusStop.name]).where(
+    if not direction_id:
+        raise HTTPException(
+            status_code=400, detail="Vous devez spécifier une direction"
+        )
+    query = select(BusStop.id, BusStop.name).where(
         BusStop.id.in_(
-            select([BusStopDirection.bus_stop_id]).where(
+            select(BusStopDirection.bus_stop_id).where(
                 BusStopDirection.direction_id == direction_id
             )
         )
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify({bus_stop[1]: bus_stop[0] for bus_stop in res}),
-        200,
-    )
+    session.close()
+    return {bus_stop[1]: bus_stop[0] for bus_stop in res}
 
 
-@app.route("/v1/bus_stop/search/<string:bus_stop_name>", methods=["GET"])
+@app.get("/v1/bus_stop/search/{bus_stop_name}")
 def search_bus_stop(bus_stop_name: str):
     """Return all bus stop that match the name"""
-    query = select([BusStop.id, BusStop.name]).where(
+    query = select(BusStop.id, BusStop.name).where(
         BusStop.name.like(f"%{bus_stop_name}%")
     )
+    session = APIDatabase(config.DB_URL)
     res = session.execute(query).fetchall()
-    return (
-        jsonify([{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]),
-        200,
-    )
+    session.close()
+    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
 
 
-@app.route("/v1/bus_stop/live/<string:bus_stop_id>", methods=["GET"])
+@app.get("/v1/bus_stop/live/{bus_stop_id}")
 def get_bus_stop_info(bus_stop_id: str):
-    if bus_stop_id == "":
-        return jsonify({"error": "Vous devez spécifier un arrêt de bus"}), 400
+    if not bus_stop_id:
+        raise HTTPException(
+            status_code=400, detail="Vous devez spécifier un arrêt de bus"
+        )
     page = requests.get("https://live.synchro-bus.fr/" + bus_stop_id)
 
     soup = BeautifulSoup(page.content, "html.parser")
@@ -202,11 +200,4 @@ def get_bus_stop_info(bus_stop_id: str):
             # The first character of the remaining str is a space
         }
         next_bus_list.append(next_bus)
-    return jsonify(next_bus_list)
-
-
-if __name__ == "__main__":
-    session = APIDatabase(config.DB_URL)
-    print("Starting server...")
-    app.run(host="0.0.0.0", port=8080, debug=True)
-    # serve(app, host="0.0.0.0", port=8080)
+    return next_bus_list
