@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import select
+from starlette.responses import RedirectResponse
 
 import config
 from database.Database import APIDatabase as APIDatabase
@@ -18,6 +19,10 @@ from database.Table import (
 
 app = FastAPI()
 
+@app.get("/")
+def root():
+    response = RedirectResponse(url='/docs')
+    return response
 
 @app.get("/v1/bus")
 def get_bus():
