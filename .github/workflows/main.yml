@@ -1,26 +1,24 @@
-name: Build and deploy
+name: CI/CD Deployment
 
 on:
   push:
     branches:
-      - main
-
-env:
-  SSH_OPTS: "-o StrictHostKeyChecking=no"
+      - main  # Change this to your main branch name, if different.
 
 jobs:
-  deploy-api:
-    name: Deploy API
-    runs-on: self-hosted
+  deploy:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
       - name: Set up SSH
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add <(echo "$SSH_PRIVATE_KEY")
+        uses: webfactory/ssh-agent@v0.5.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-      - name: Deploy API to remote server
+      - name: Deploy to Remote Server
         run: |
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$DEPLOY_SERVER 'cd $PROJECT_PATH && git pull && docker-compose up -d --no-deps --build docker-api'
+          ssh $SSH_USER@$DEPLOY_SERVER 'cd $PROJECT_PATH && git pull origin main && docker-compose up --build -d'
