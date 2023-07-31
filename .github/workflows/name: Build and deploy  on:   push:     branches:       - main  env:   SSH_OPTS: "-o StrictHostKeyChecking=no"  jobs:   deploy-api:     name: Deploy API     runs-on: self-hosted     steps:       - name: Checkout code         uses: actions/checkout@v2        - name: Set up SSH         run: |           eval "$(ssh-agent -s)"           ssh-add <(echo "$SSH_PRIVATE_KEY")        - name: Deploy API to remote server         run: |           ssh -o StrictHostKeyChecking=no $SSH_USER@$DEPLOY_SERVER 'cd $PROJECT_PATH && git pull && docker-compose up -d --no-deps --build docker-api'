@@ -13,11 +13,14 @@ jobs:
     name: Deploy API
     runs-on: self-hosted
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Set up SSH
         run: |
           eval "$(ssh-agent -s)"
-          ssh-add <(echo -e "$SSH_PRIVATE_KEY")
+          ssh-add <(echo "$SSH_PRIVATE_KEY")
 
       - name: Deploy API to remote server
         run: |
-          sshpass -p $SSH_USER ssh $SSH_USER@$DEPLOY_SERVER 'cd $PROJECT_PATH && git pull && docker-compose up -d --no-deps --build docker-api'
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$DEPLOY_SERVER 'cd $PROJECT_PATH && git pull && docker-compose up -d --no-deps --build docker-api'
