@@ -21,4 +21,4 @@ jobs:
       - name: Deploy to Remote Server
         run: |
           ssh-keyscan ${{ vars.DEPLOY_SERVER }} >> ~/.ssh/known_hosts
-          ssh ${{ vars.SSH_USER }}@${{ vars.DEPLOY_SERVER }} 'cd ${{ vars.PROJECT_PATH }} && git pull origin main && docker-compose up --build -d'
+          ssh ${{ vars.SSH_USER }}@${{ vars.DEPLOY_SERVER }} 'cd ${{ vars.PROJECT_PATH }} && git pull origin main && docker compose up --build -d'
