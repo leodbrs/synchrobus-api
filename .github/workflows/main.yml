@@ -13,11 +13,6 @@ jobs:
     name: Deploy API
     runs-on: self-hosted
     steps:
-      - name: Install OpenSSH client
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install openssh-client -y
-
       - name: Set up SSH
         run: |
           eval "$(ssh-agent -s)"
