@@ -17,8 +17,8 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
 
       - name: Deploy to Remote Server
         run: |
+          ssh-keyscan ${{ vars.DEPLOY_SERVER }} >> ~/.ssh/known_hosts
           ssh ${{ vars.SSH_USER }}@${{ vars.DEPLOY_SERVER }} 'cd ${{ vars.PROJECT_PATH }} && git pull origin main && docker-compose up --build -d'
