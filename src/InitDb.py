@@ -91,10 +91,10 @@ def add_bus_stop_direction(bus_stop_id, direction):
 
 session = APIDatabase(config.DB_URL)
 
-bus_list = ["A", "B", "C", "D"]
+bus_list = ["A", "B", "C", "D", "1"]
 
 for bus in bus_list:
-    add_bus(bus)
+    add_bus()
     synchrobus_api_info = requests.get(
         f"https://start.synchro.grandchambery.fr/fr/map/linesshape?line={bus}"
     ).json()[bus]
