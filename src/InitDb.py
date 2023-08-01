@@ -91,7 +91,7 @@ def add_bus_stop_direction(bus_stop_id, direction):
 
 session = APIDatabase(config.DB_URL)
 
-bus_list = ["A", "B", "C", "D", "1"]
+bus_list = ["A", "B", "C", "D"]
 
 for bus in bus_list:
     add_bus()
