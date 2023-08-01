@@ -94,7 +94,7 @@ session = APIDatabase(config.DB_URL)
 bus_list = ["A", "B", "C", "D"]
 
 for bus in bus_list:
-    add_bus()
+    add_bus(bus)
     synchrobus_api_info = requests.get(
         f"https://start.synchro.grandchambery.fr/fr/map/linesshape?line={bus}"
     ).json()[bus]
