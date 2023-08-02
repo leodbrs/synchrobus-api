@@ -19,10 +19,12 @@ from database.Table import (
 
 app = FastAPI()
 
+
 @app.get("/")
 def root():
-    response = RedirectResponse(url='/docs')
+    response = RedirectResponse(url="/docs")
     return response
+
 
 @app.get("/v1/bus")
 def get_bus():
@@ -205,4 +207,6 @@ def get_bus_stop_info(bus_stop_id: str):
             # The first character of the remaining str is a space
         }
         next_bus_list.append(next_bus)
+    if not next_bus_list:
+        return {"error": "Aucun bus pour le moment"}
     return next_bus_list
