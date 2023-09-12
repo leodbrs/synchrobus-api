@@ -132,7 +132,7 @@ Retourne tous les arrêts de bus
 ]
 ```
 
-### `GET` `/v1/bus_stop/direciton?id={direction_id}`
+### `GET` `/v1/bus_stop/direction?id={direction_id}`
 Retourne les arrêts de bus d'**une direction**
 
 ```json
