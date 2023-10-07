@@ -181,7 +181,8 @@ def get_bus_stop_info(bus_stop_id: str):
         raise HTTPException(
             status_code=400, detail="Vous devez spécifier un arrêt de bus"
         )
-    page = requests.get("https://live.synchro-bus.fr/" + bus_stop_id)
+    headers = {'Accept-Encoding': 'gzip'}
+    page = requests.get("https://live.synchro-bus.fr/" + bus_stop_id, headers=headers)
 
     soup = BeautifulSoup(page.content, "html.parser")
     bus_passage = soup.find_all("div", class_="nq-c-Direction")
