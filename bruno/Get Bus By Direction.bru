@@ -1,0 +1,25 @@
+meta {
+  name: Get Bus By Direction
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1/bus/direction?direction_id=1
+  body: none
+  auth: none
+}
+
+params:query {
+  direction_id: 1
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}

@@ -2,7 +2,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import delete
 
-import database.Table as Table
 
 
 class APIDatabase:

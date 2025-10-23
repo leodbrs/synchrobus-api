@@ -1,211 +1,98 @@
-from typing import Union
-
-import requests
-from bs4 import BeautifulSoup
-from fastapi import FastAPI, HTTPException
-from sqlalchemy import select
+"""Main FastAPI application with improved structure."""
+from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-import config
-from database.Database import APIDatabase as APIDatabase
-from database.Table import (
-    Bus,
-    BusDirection,
-    BusStop,
-    BusStopBus,
-    BusStopDirection,
-    Direction,
+from core import config
+from core.logging_config import logger
+from core.middleware import LoggingMiddleware, setup_cors
+from api.routers import bus, direction, bus_stop, apple_shortcuts
+
+# Description for API documentation
+description = """
+API non-officielle fournissant des informations sur les lignes de bus,
+directions, arrêts et horaires de la ville de Chambéry.
+
+Tous les endpoints retournent du JSON. La plupart acceptent des query parameters
+pour filtrer les résultats.
+"""
+
+# Tags metadata for better organization
+tags_metadata = [
+    {
+        "name": "bus",
+        "description": "Opérations sur les lignes de bus. Récupérer toutes les lignes ou filtrer par direction.",
+    },
+    {
+        "name": "direction",
+        "description": "Opérations sur les directions. Récupérer toutes les directions ou filtrer par bus/arrêt.",
+    },
+    {
+        "name": "bus_stop",
+        "description": "Opérations sur les arrêts de bus. Inclut la recherche et les horaires en temps réel.",
+    },
+    {
+        "name": "apple_shortcuts",
+        "description": "Endpoints compatibles Apple Shortcuts (format dict au lieu de list).",
+    },
+]
+
+# Create FastAPI application
+app = FastAPI(
+    title="SynchroBus API",
+    description=description,
+    version="2.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=tags_metadata,
+    contact={
+        "name": "SynchroBus API",
+        "url": "https://github.com/leodbrs/synchrobus-api",
+    },
 )
 
-app = FastAPI()
+# Configure CORS
+setup_cors(app, config.CORS_ORIGINS)
+
+# Add logging middleware
+app.add_middleware(LoggingMiddleware)
+
+# Include routers
+app.include_router(bus.router)
+app.include_router(direction.router)
+app.include_router(bus_stop.router)
+app.include_router(apple_shortcuts.router)
+
+logger.info("All routers registered successfully")
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    response = RedirectResponse(url="/docs")
-    return response
+    """Redirect root to API documentation."""
+    return RedirectResponse(url="/docs")
 
 
-@app.get("/v1/bus")
-def get_bus():
-    """Return all bus"""
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(select(Bus.id)).fetchall()
-    session.close()
-    return [bus[0] for bus in res]
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint.
+    
+    Returns:
+        dict: Health status
+    """
+    return {"status": "healthy", "version": "2.0.0"}
 
 
-@app.get("/v1/bus/direction")
-def get_bus_direction(direction_id: Union[int, None] = None):
-    """Return all bus for a direction"""
-    if not direction_id:
-        raise HTTPException(
-            status_code=400, detail="Vous devez spécifier une direction"
-        )
-    query = select(Bus.id).where(
-        Bus.id.in_(
-            select(BusDirection.bus_id).where(BusDirection.direction_id == direction_id)
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return [bus[0] for bus in res]
+@app.on_event("startup")
+async def startup_event():
+    """Log application startup."""
+    logger.info("=" * 50)
+    logger.info("SynchroBus API starting up...")
+    logger.info(f"Environment: {config.LOG_LEVEL}")
+    logger.info(f"CORS Origins: {config.CORS_ORIGINS}")
+    logger.info("=" * 50)
 
 
-@app.get("/v1/direction")
-def get_direction():
-    """Return all direction"""
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(select(Direction.id, Direction.name)).fetchall()
-    session.close()
-    return [{"id": direction[0], "name": direction[1]} for direction in res]
-
-
-@app.get("/v1/direction/bus")
-def get_direction_bus(bus_id: Union[str, None] = None):
-    """Return all direction for a bus"""
-    if not bus_id:
-        raise HTTPException(status_code=400, detail="Vous devez spécifier un bus")
-    query = select(Direction.id, Direction.name).where(
-        Direction.id.in_(
-            select(BusDirection.direction_id).where(BusDirection.bus_id == bus_id)
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return [{"id": direction[0], "name": direction[1]} for direction in res]
-
-
-@app.get("/v1/direction/bus_stop")
-def get_direction_bus_stop(bus_stop_id: Union[str, None] = None):
-    """Return all direction for a bus stop"""
-    if not bus_stop_id:
-        raise HTTPException(
-            status_code=400, detail="Vous devez spécifier un arrêt de bus"
-        )
-    query = select(Direction.id, Direction.name).where(
-        Direction.id.in_(
-            select(BusStopDirection.direction_id).where(
-                BusStopDirection.bus_stop_id == bus_stop_id
-            )
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return [{"id": direction[0], "name": direction[1]} for direction in res]
-
-
-@app.get("/v1/appleshortcuts/direction/bus")
-def get_direction_bus_appleshortcuts(bus_id: Union[str, None] = None):
-    """Return all direction for a bus"""
-    if not bus_id:
-        raise HTTPException(status_code=400, detail="Vous devez spécifier un bus")
-    query = select(Direction.id, Direction.name).where(
-        Direction.id.in_(
-            select(BusDirection.direction_id).where(BusDirection.bus_id == bus_id)
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return {direction[1]: direction[0] for direction in res}
-
-
-@app.get("/v1/bus_stop")
-def get_bus_stop():
-    """Return all bus stop"""
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(select(BusStop.id, BusStop.name)).fetchall()
-    session.close()
-    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
-
-
-@app.route("/v1/bus_stop/direction")
-def get_bus_stop_direction(direction_id: Union[str, None] = None):
-    """Return all bus stop for a direction"""
-    if not direction_id:
-        raise HTTPException(
-            status_code=400, detail="Vous devez spécifier une direction"
-        )
-    query = select(BusStop.id, BusStop.name).where(
-        BusStop.id.in_(
-            select(BusStopDirection.bus_stop_id).where(
-                BusStopDirection.direction_id == direction_id
-            )
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
-
-
-@app.get("/v1/appleshortcuts/bus_stop/direction")
-def get_bus_stop_direction_appleshortcuts(direction_id: Union[str, None] = None):
-    """Return all bus stop for a direction"""
-    if not direction_id:
-        raise HTTPException(
-            status_code=400, detail="Vous devez spécifier une direction"
-        )
-    query = select(BusStop.id, BusStop.name).where(
-        BusStop.id.in_(
-            select(BusStopDirection.bus_stop_id).where(
-                BusStopDirection.direction_id == direction_id
-            )
-        )
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return {bus_stop[1]: bus_stop[0] for bus_stop in res}
-
-
-@app.get("/v1/bus_stop/search/{bus_stop_name}")
-def search_bus_stop(bus_stop_name: str):
-    """Return all bus stop that match the name"""
-    query = select(BusStop.id, BusStop.name).where(
-        BusStop.name.like(f"%{bus_stop_name}%")
-    )
-    session = APIDatabase(config.DB_URL)
-    res = session.execute(query).fetchall()
-    session.close()
-    return [{"id": bus_stop[0], "name": bus_stop[1]} for bus_stop in res]
-
-
-@app.get("/v1/bus_stop/live/{bus_stop_id}")
-def get_bus_stop_info(bus_stop_id: str):
-    if not bus_stop_id:
-        raise HTTPException(
-            status_code=400, detail="Vous devez spécifier un arrêt de bus"
-        )
-    headers = {'Accept-Encoding': 'gzip'}
-    page = requests.get("https://live.synchro-bus.fr/" + bus_stop_id, headers=headers)
-
-    soup = BeautifulSoup(page.content, "html.parser")
-    bus_passage = soup.find_all("div", class_="nq-c-Direction")
-
-    next_bus_list: list = []
-
-    for div in bus_passage:
-        next_bus = {
-            # nom de la ligne
-            "line": (div.find_all("img", class_="img-line")[0]["src"][56]),
-            # direction de la ligne
-            "direction": div.find_all(
-                "div", class_="nq-c-Direction-content-detail-location"
-            )[0].span.text,
-            # heure d'arrivée
-            "time": div.find_all("div", class_="nq-c-Direction-content-detail-time")[
-                0
-            ].text,
-            # temps restant avant l'arrivée
-            "remaining": div.find_all(
-                "div", class_="nq-c-Direction-content-detail-remaining"
-            )[0].text[1:]
-            # The first character of the remaining str is a space
-        }
-        next_bus_list.append(next_bus)
-    return next_bus_list
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Log application shutdown."""
+    logger.info("SynchroBus API shutting down...")

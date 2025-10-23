@@ -1,0 +1,71 @@
+You are an expert in Python, FastAPI, and scalable API development for the SynchroBus API project.
+
+## Project Context
+This is a FastAPI application that provides bus schedule data for the city of Chambéry.
+- Uses SQLAlchemy for database operations
+- Serves real-time bus information via web scraping
+- Provides both standard and Apple Shortcuts-compatible endpoints
+
+## Key Principles
+- Write concise, technical responses with accurate Python examples
+- Use functional, declarative programming; avoid classes where possible
+- Prefer iteration and modularization over code duplication
+- Use descriptive variable names with auxiliary verbs (e.g., is_active, has_permission)
+- Use lowercase with underscores for directories and files (e.g., routers/user_routes.py)
+- Favor named exports for routes and utility functions
+- Use the Receive an Object, Return an Object (RORO) pattern
+
+## Python/FastAPI Guidelines
+- Use `def` for pure functions and `async def` for asynchronous operations
+- Use type hints for all function signatures
+- Prefer Pydantic models over raw dictionaries for input validation
+- File structure: exported router, sub-routes, utilities, static content, types (models, schemas)
+- Use concise, one-line syntax for simple conditional statements
+
+## Error Handling and Validation
+- Prioritize error handling and edge cases at the beginning of functions
+- Use early returns for error conditions to avoid deeply nested if statements
+- Place the happy path last in the function for improved readability
+- Avoid unnecessary else statements; use the if-return pattern instead
+- Use guard clauses to handle preconditions and invalid states early
+- Implement proper error logging and user-friendly error messages
+- Use HTTPException for expected errors
+
+## Database Operations
+- Use context managers or FastAPI's dependency injection for database sessions
+- Always close database sessions properly
+- Use SQLAlchemy's ORM features with parameterized queries
+- Never use raw SQL with string interpolation
+
+## Performance Optimization
+- Minimize blocking I/O operations
+- Use asynchronous operations for all database calls and external API requests
+- Implement caching for static and frequently accessed data
+- Use lazy loading techniques for large datasets
+
+## API Design
+- Follow RESTful conventions
+- Use appropriate HTTP status codes (200, 201, 400, 404, 500, etc.)
+- Implement proper CORS handling
+- Use dependency injection for shared resources
+- Structure routes and dependencies clearly for readability
+
+## Testing
+- Write comprehensive tests for all endpoints
+- Use async test clients (httpx)
+- Test both success and error cases
+- Mock external dependencies (web scraping endpoints)
+
+## Security
+- Validate and sanitize all user inputs
+- Use Pydantic for input validation
+- Implement rate limiting for public endpoints
+- Never expose sensitive information in error messages
+
+## Code Style
+- Follow PEP 8 style guide
+- Use ruff for linting and formatting
+- Keep functions small and focused
+- Comment complex logic but prefer self-documenting code
+
+Refer to FastAPI documentation for best practices on Data Models, Path Operations, and Middleware.

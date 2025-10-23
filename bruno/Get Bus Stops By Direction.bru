@@ -1,0 +1,32 @@
+meta {
+  name: Get Bus Stops By Direction
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/v1/bus_stop/direction?direction_id=1
+  body: none
+  auth: none
+}
+
+params:query {
+  direction_id: 1
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each bus stop has id and name", function() {
+    if (res.body.length > 0) {
+      expect(res.body[0]).to.have.property('id');
+      expect(res.body[0]).to.have.property('name');
+    }
+  });
+}

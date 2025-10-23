@@ -1,0 +1,25 @@
+meta {
+  name: Get Directions By Bus (Apple Shortcuts)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/v1/appleshortcuts/direction/bus?bus_id=A
+  body: none
+  auth: none
+}
+
+params:query {
+  bus_id: A
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an object", function() {
+    expect(res.body).to.be.an('object');
+  });
+}

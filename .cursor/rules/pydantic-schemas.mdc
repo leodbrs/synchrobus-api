@@ -1,0 +1,104 @@
+---
+description: Pydantic model guidelines for request/response validation
+globs:
+  - src/models/**/*.py
+  - src/api/routers/**/*.py
+alwaysApply: false
+---
+
+# Pydantic Schema Patterns
+
+## Schema Organization
+
+Separate schemas by purpose:
+- Base schemas (shared fields)
+- Create schemas (input)
+- Update schemas (partial input)
+- Response schemas (output)
+
+## Example Schema Structure
+
+```python
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
+
+# Base schema
+class BusStopBase(BaseModel):
+    """Base schema for bus stop."""
+    name: str = Field(..., min_length=1, max_length=100)
+
+# Create schema (input)
+class BusStopCreate(BusStopBase):
+    """Schema for creating a bus stop."""
+    id: str = Field(..., min_length=1, max_length=20)
+
+# Update schema (partial input)
+class BusStopUpdate(BusStopBase):
+    """Schema for updating a bus stop."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+
+# Response schema (output)
+class BusStopResponse(BusStopBase):
+    """Schema for bus stop response."""
+    id: str
+    
+    model_config = ConfigDict(from_attributes=True)
+
+# List response
+class BusStopListResponse(BaseModel):
+    """Schema for list of bus stops."""
+    items: list[BusStopResponse]
+    total: int
+```
+
+## Direction Schema
+```python
+class DirectionResponse(BaseModel):
+    """Schema for direction response."""
+    id: int
+    name: str
+    
+    model_config = ConfigDict(from_attributes=True)
+```
+
+## Complex Schema with Nested Models
+```python
+class BusLiveInfoResponse(BaseModel):
+    """Schema for live bus information."""
+    line: str = Field(..., description="Bus line (e.g., A, B, C)")
+    direction: str = Field(..., description="Direction name")
+    time: str = Field(..., description="Arrival time (HH:MM)")
+    remaining: str = Field(..., description="Time remaining (e.g., 'dans 5 minutes')")
+```
+
+## Validation Examples
+```python
+from pydantic import field_validator, validator
+
+class BusStopSearch(BaseModel):
+    """Schema for bus stop search."""
+    query: str = Field(..., min_length=2, max_length=50)
+    
+    @field_validator('query')
+    @classmethod
+    def validate_query(cls, v: str) -> str:
+        """Validate and sanitize search query."""
+        return v.strip().lower()
+```
+
+## Response Models in Routes
+```python
+@router.get("/bus_stop", response_model=list[BusStopResponse])
+async def get_bus_stops(db: Session = Depends(get_db)):
+    """Get all bus stops."""
+    bus_stops = db.query(BusStop).all()
+    return bus_stops
+```
+
+## Best Practices
+- Always use `model_config = ConfigDict(from_attributes=True)` for ORM models
+- Use Field() for adding constraints and descriptions
+- Separate input and output schemas
+- Use validators for complex validation logic
+- Document all schemas with docstrings
+- Use specific types (str, int, list, etc.)
