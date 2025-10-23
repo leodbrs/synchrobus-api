@@ -1,0 +1,21 @@
+meta {
+  name: Get All Bus
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1/bus
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}

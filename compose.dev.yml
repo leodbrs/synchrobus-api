@@ -1,0 +1,13 @@
+services:
+    web:
+        build: .
+        restart: unless-stopped
+        ports:
+            - 8051:8080
+        environment:
+            - ENVIRONMENT=development
+        volumes:
+            # Mount source files for hot-reload
+            - ./src:/usr/src/app/src:delegated
+            - ./src/main.py:/usr/src/app/main.py:delegated
+            - ./src/config.py:/usr/src/app/config.py:delegated

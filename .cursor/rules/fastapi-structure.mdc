@@ -1,0 +1,78 @@
+---
+description: FastAPI project structure and organization guidelines
+globs:
+  - src/**/*.py
+  - tests/**/*.py
+alwaysApply: true
+---
+
+# FastAPI Project Structure
+
+## Recommended Folder Structure
+```
+src/
+├── api/
+│   ├── __init__.py
+│   ├── dependencies.py      # Shared dependencies
+│   └── routers/             # Route modules
+│       ├── __init__.py
+│       ├── bus.py
+│       ├── direction.py
+│       └── bus_stop.py
+├── core/
+│   ├── __init__.py
+│   ├── config.py            # Configuration
+│   ├── logging.py           # Logging setup
+│   └── security.py          # CORS, rate limiting
+├── database/
+│   ├── __init__.py
+│   ├── base.py              # Base classes
+│   ├── models.py            # SQLAlchemy models
+│   └── session.py           # Session management
+├── models/
+│   ├── __init__.py
+│   └── schemas.py           # Pydantic schemas
+├── services/
+│   ├── __init__.py
+│   ├── bus_service.py       # Business logic
+│   └── scraper_service.py   # Web scraping logic
+└── main.py                  # Application entry point
+```
+
+## Router Organization
+- Separate routers by domain (bus, direction, bus_stop)
+- Use APIRouter with prefixes and tags
+- Keep route handlers thin, delegate to services
+
+## Dependencies
+- Create reusable dependencies in `api/dependencies.py`
+- Use dependency injection for database sessions
+- Use dependency injection for common query parameters
+
+## Services
+- Separate business logic from route handlers
+- Make services testable and reusable
+- Use type hints and return Pydantic models
+
+## Example Router Structure
+```python
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from ..api.dependencies import get_db
+from ..models.schemas import BusResponse
+from ..services.bus_service import BusService
+
+router = APIRouter(prefix="/v1/bus", tags=["bus"])
+
+@router.get("/", response_model=list[BusResponse])
+async def get_all_buses(db: Session = Depends(get_db)):
+    """Get all available bus lines."""
+    return await BusService.get_all(db)
+```
+
+## Key Principles
+- Keep route handlers simple and focused
+- Use dependency injection for shared resources
+- Separate concerns (routes, services, models)
+- Use clear naming conventions
+- Document all endpoints with docstrings

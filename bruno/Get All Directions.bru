@@ -1,0 +1,26 @@
+meta {
+  name: Get All Directions
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1/direction
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each direction has id and name", function() {
+    expect(res.body[0]).to.have.property('id');
+    expect(res.body[0]).to.have.property('name');
+  });
+}

@@ -7,3 +7,6 @@ waitress
 
 fastapi
 uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings

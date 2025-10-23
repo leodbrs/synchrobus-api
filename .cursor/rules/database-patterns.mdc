@@ -1,0 +1,79 @@
+---
+description: Database session management and query patterns
+globs:
+  - src/database/**/*.py
+  - src/api/**/*.py
+  - src/services/**/*.py
+alwaysApply: false
+---
+
+# Database Patterns
+
+## Session Management with Dependency Injection
+
+Always use FastAPI's dependency injection for database sessions:
+
+```python
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from ..database.session import SessionLocal
+
+def get_db() -> Session:
+    """Get database session."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Usage in routes
+@router.get("/items")
+async def get_items(db: Session = Depends(get_db)):
+    return db.query(Item).all()
+```
+
+## Query Patterns
+
+### Use SQLAlchemy ORM
+```python
+# ✅ GOOD - Parameterized query
+result = db.query(BusStop).filter(BusStop.id == bus_stop_id).first()
+
+# ❌ BAD - SQL injection risk
+result = db.execute(f"SELECT * FROM bus_stop WHERE id = '{bus_stop_id}'")
+```
+
+### Complex Queries
+```python
+# Use SQLAlchemy's query builder
+from sqlalchemy import select
+
+query = select(Direction.id, Direction.name).where(
+    Direction.id.in_(
+        select(BusDirection.direction_id).where(
+            BusDirection.bus_id == bus_id
+        )
+    )
+)
+result = db.execute(query).fetchall()
+```
+
+## Error Handling
+```python
+from fastapi import HTTPException
+
+@router.get("/bus_stop/{bus_stop_id}")
+async def get_bus_stop(bus_stop_id: str, db: Session = Depends(get_db)):
+    bus_stop = db.query(BusStop).filter(BusStop.id == bus_stop_id).first()
+    if not bus_stop:
+        raise HTTPException(status_code=404, detail="Bus stop not found")
+    return bus_stop
+```
+
+## Best Practices
+- Always use parameterized queries
+- Close sessions properly (use dependency injection)
+- Handle database errors gracefully
+- Use transactions for multiple operations
+- Avoid N+1 queries with joinedload or selectinload
+- Use pagination for large result sets

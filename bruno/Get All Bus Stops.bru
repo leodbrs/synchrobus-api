@@ -1,0 +1,28 @@
+meta {
+  name: Get All Bus Stops
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1/bus_stop
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each bus stop has id and name", function() {
+    if (res.body.length > 0) {
+      expect(res.body[0]).to.have.property('id');
+      expect(res.body[0]).to.have.property('name');
+    }
+  });
+}

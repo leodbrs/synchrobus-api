@@ -1,0 +1,30 @@
+meta {
+  name: Get Bus Stop Live Info
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/v1/bus_stop/live/GAMBE1
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each bus passage has required fields", function() {
+    if (res.body.length > 0) {
+      expect(res.body[0]).to.have.property('line');
+      expect(res.body[0]).to.have.property('direction');
+      expect(res.body[0]).to.have.property('time');
+      expect(res.body[0]).to.have.property('remaining');
+    }
+  });
+}
